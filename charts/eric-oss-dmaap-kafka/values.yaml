@@ -1,0 +1,113 @@
+global:
+  persistence: {}
+  registry:
+    url: armdocker.rnd.ericsson.se
+
+pullPolicy: IfNotPresent
+
+imageCredentials:
+  # repoPath include the image path relative to the registry url, excluding image name
+  repoPath: proj-orchestration-so
+  pullPolicy: IfNotPresent
+  registry:
+    url: 
+    #pullSecret: eric-adp-example-secret
+    
+images:
+  eric-oss-dmaap-kafka:
+    name: eric-oss-dmaap-kafka
+    repository: IMAGE_REPO
+    tag: IMAGE_TAG
+  init:
+    name: so-base
+    tag: 1.0.0-9
+
+zookeeper:
+  name: eric-data-coordinator-zk
+  port: 2181
+
+updateStrategy:
+  type: RollingUpdate
+
+# flag to enable debugging - application support required
+debugEnabled: false
+
+# default number of instances
+replicaCount: 3
+
+#Kafka custom authorizer class name
+kafkaCustomAuthorizer: org.onap.dmaap.kafkaAuthorize.KafkaCustomAuthorizer
+deleteTopicEnable: true
+
+# To access Kafka outside cluster, this value must be set to hard and the number of nodes in K8S cluster must be equal or greater then replica count
+podAntiAffinityType: soft
+
+# defult partitions
+defaultpartitions: 3
+
+nodeSelector: {}
+
+nodeAffinity: {}
+
+affinity: {}
+
+tolerations: {}
+
+
+
+# probe configuration parameters
+liveness:
+  initialDelaySeconds: 110
+  periodSeconds: 10
+  timeoutSeconds: 1
+  # necessary to disable liveness probe when setting breakpoints
+  # in debugger so K8s doesn't restart unresponsive container
+  enabled: true
+
+readiness:
+  initialDelaySeconds: 110
+  periodSeconds: 10
+  timeoutSeconds: 1
+
+## Persist data to a persitent volume
+persistence:
+  enabled: false
+
+  ## A manually managed Persistent Volume and Claim
+  ## Requires persistence.enabled: true
+  ## If defined, PVC must be created manually before volume will be bound
+  # existingClaim:
+  volumeReclaimPolicy: Delete
+
+  ## database data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  storageClass: "erikube-rbd"
+  accessMode: ReadWriteOnce
+  size: 2Gi
+  mountPath: /dockerdata-nfs
+  mountSubPath: message-router/data-kafka
+
+service:
+  type: NodePort
+  name: eric-oss-dmaap-kafka
+  portName: eric-oss-dmaap-kafka
+  internalPort: 9092
+  externalPort: 9093
+
+
+
+ingress:
+  enabled: false
+
+resources:
+  requests:
+    memory: 2000M
+    cpu: 1000m
+  limits:
+    memory: 4000M
+    cpu: 4000m

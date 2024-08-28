@@ -1,0 +1,26 @@
+{{- $root := . -}}
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) -}}
+{{ range $i, $e := until (atoi (quote $root.Values.replicaCount) | default 3) }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "eric-oss-dmaap-kafka-pv.name" . }}-{{ $i }}
+  labels:
+    app: {{ template "eric-oss-dmaap-kafka-pv.name" . }}
+  {{- include "eric-oss-dmaap-kafka.kubernetes-io-info" .| nindent 4 }}
+  annotations:
+  {{- include "eric-oss-dmaap-kafka.helm-annotations" .| nindent 4 }}
+spec:
+  capacity:
+    storage: {{ $root.Values.persistence.size }}
+  accessModes:
+    - {{ $root.Values.persistence.accessMode }}
+  hostPath:
+    path: {{ $root.Values.persistence.mountPath }}/{{ $root.Release.Name }}/{{ $root.Values.persistence.mountSubPath }}-{{ $i }}
+  persistentVolumeReclaimPolicy: {{ $root.Values.persistence.volumeReclaimPolicy }}
+  storageClassName: {{ $root.Values.persistence.storageClass }}
+{{ end }}
+{{ end }}
+
+

@@ -1,0 +1,14 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "eric-oss-dmaap-kafka-poddisruptionbudget.name" . }}-pdb
+  labels:
+    app: {{ template "eric-oss-dmaap-kafka-poddisruptionbudget.name" . }}
+  {{- include "eric-oss-dmaap-kafka.kubernetes-io-info" .| nindent 4 }}
+  annotations:
+  {{- include "eric-oss-dmaap-kafka.helm-annotations" .| nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  maxUnavailable: 1
